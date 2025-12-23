@@ -160,10 +160,59 @@ namespace DungeonGame1
                 currentState.Width = width;
                 currentState.Height = height;
 
-                if (currentState.Map != null)
-                    currentState.Map.RemoveAll(t => t.X >= width || t.Y >= height);
-
+                // Сохраняем стены по границам при изменении размера
+                UpdateMapWithBorders(width, height);
                 UpdateEditorDisplay();
+            }
+        }
+
+        private void UpdateMapWithBorders(int newWidth, int newHeight)
+        {
+            if (currentState?.Map == null) return;
+
+            // Удаляем тайлы за новыми границами
+            currentState.Map.RemoveAll(t => t.X >= newWidth || t.Y >= newHeight);
+
+            // Добавляем недостающие пустые тайлы
+            for (int y = 0; y < newHeight; y++)
+            {
+                for (int x = 0; x < newWidth; x++)
+                {
+                    var tile = currentState.Map.FirstOrDefault(t => t.X == x && t.Y == y);
+                    if (tile == null)
+                    {
+                        currentState.Map.Add(new TileDTO
+                        {
+                            X = x,
+                            Y = y,
+                            EntityType = EntityVisualType.Empty,
+                            FacingDirection = FacingDirection.Down
+                        });
+                    }
+                }
+            }
+
+            // Обновляем стены по новым границам
+            for (int x = 0; x < newWidth; x++)
+            {
+                var topTile = currentState.Map.FirstOrDefault(t => t.X == x && t.Y == 0);
+                var bottomTile = currentState.Map.FirstOrDefault(t => t.X == x && t.Y == newHeight - 1);
+
+                if (topTile != null && topTile.EntityType != EntityVisualType.Player && topTile.EntityType != EntityVisualType.Exit)
+                    topTile.EntityType = EntityVisualType.Wall;
+                if (bottomTile != null && bottomTile.EntityType != EntityVisualType.Player && bottomTile.EntityType != EntityVisualType.Exit)
+                    bottomTile.EntityType = EntityVisualType.Wall;
+            }
+
+            for (int y = 1; y < newHeight - 1; y++)
+            {
+                var leftTile = currentState.Map.FirstOrDefault(t => t.X == 0 && t.Y == y);
+                var rightTile = currentState.Map.FirstOrDefault(t => t.X == newWidth - 1 && t.Y == y);
+
+                if (leftTile != null && leftTile.EntityType != EntityVisualType.Player && leftTile.EntityType != EntityVisualType.Exit)
+                    leftTile.EntityType = EntityVisualType.Wall;
+                if (rightTile != null && rightTile.EntityType != EntityVisualType.Player && rightTile.EntityType != EntityVisualType.Exit)
+                    rightTile.EntityType = EntityVisualType.Wall;
             }
         }
 

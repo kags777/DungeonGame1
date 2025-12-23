@@ -73,14 +73,17 @@ namespace DungeonGame1{
         {
             var tiles = new List<TileDTO>();
 
-            // ТОЛЬКО границы карты - стены по краям
+            // Создаем стены по всем границам
             for (int x = 0; x < width; x++)
             {
+                // Верхняя и нижняя границы
                 tiles.Add(new TileDTO { X = x, Y = 0, EntityType = EntityVisualType.Wall });
                 tiles.Add(new TileDTO { X = x, Y = height - 1, EntityType = EntityVisualType.Wall });
             }
+
             for (int y = 1; y < height - 1; y++)
             {
+                // Левая и правая границы
                 tiles.Add(new TileDTO { X = 0, Y = y, EntityType = EntityVisualType.Wall });
                 tiles.Add(new TileDTO { X = width - 1, Y = y, EntityType = EntityVisualType.Wall });
             }
@@ -94,18 +97,18 @@ namespace DungeonGame1{
                 FacingDirection = FacingDirection.Right
             });
 
-            // Враги вокруг
+            // Враги внутри
             tiles.Add(new TileDTO { X = width / 2 + 2, Y = height / 2, EntityType = EntityVisualType.Enemy });
             tiles.Add(new TileDTO { X = width / 2, Y = height / 2 + 2, EntityType = EntityVisualType.Enemy });
 
-            // Кристаллы - МАЛО
+            // Кристаллы
             tiles.Add(new TileDTO { X = width / 2 + 1, Y = height / 2 - 1, EntityType = EntityVisualType.Crystal });
             tiles.Add(new TileDTO { X = width / 2 - 1, Y = height / 2 + 1, EntityType = EntityVisualType.Crystal });
 
-            // Ловушки - МАЛО
+            // Ловушки
             tiles.Add(new TileDTO { X = width / 2 - 2, Y = height / 2, EntityType = EntityVisualType.Trap });
 
-            // Выход в углу
+            // Выход в углу (но не в самой стене)
             tiles.Add(new TileDTO { X = width - 2, Y = height - 2, EntityType = EntityVisualType.Exit });
 
             return tiles;
@@ -379,7 +382,6 @@ namespace DungeonGame1{
         // Остальные методы (MovePlayer, PlayerAttack и т.д.) остаются без изменений
         public GameStateDTO MovePlayer(FacingDirection direction)
         {
-            // ... существующий код без изменений
             if (gameState.Status != GameStatus.Playing || playerTile == null)
                 return gameState;
 
@@ -395,6 +397,13 @@ namespace DungeonGame1{
             }
 
             playerTile.FacingDirection = direction;
+
+            // Проверяем границы карты
+            if (newX < 0 || newX >= currentLevel.Width || newY < 0 || newY >= currentLevel.Height)
+            {
+                // Игрок пытается выйти за пределы карты
+                return gameState;
+            }
 
             var targetTile = gameState.Map.FirstOrDefault(t => t.X == newX && t.Y == newY);
 
@@ -609,8 +618,47 @@ namespace DungeonGame1{
                 Map = new List<TileDTO>()
             };
 
-            InitializeEmptyMap(newState);
+            InitializeEmptyMapWithBorders(newState);
             return newState;
+        }
+
+        private void InitializeEmptyMapWithBorders(EditorStateDTO state)
+        {
+            // Создаем пустую карту
+            for (int y = 0; y < state.Height; y++)
+            {
+                for (int x = 0; x < state.Width; x++)
+                {
+                    state.Map.Add(new TileDTO
+                    {
+                        X = x,
+                        Y = y,
+                        EntityType = EntityVisualType.Empty,
+                        FacingDirection = FacingDirection.Down
+                    });
+                }
+            }
+
+            // Автоматически добавляем стены по краям
+            for (int x = 0; x < state.Width; x++)
+            {
+                // Верхняя и нижняя границы
+                var topTile = state.Map.FirstOrDefault(t => t.X == x && t.Y == 0);
+                var bottomTile = state.Map.FirstOrDefault(t => t.X == x && t.Y == state.Height - 1);
+
+                if (topTile != null) topTile.EntityType = EntityVisualType.Wall;
+                if (bottomTile != null) bottomTile.EntityType = EntityVisualType.Wall;
+            }
+
+            for (int y = 1; y < state.Height - 1; y++)
+            {
+                // Левая и правая границы
+                var leftTile = state.Map.FirstOrDefault(t => t.X == 0 && t.Y == y);
+                var rightTile = state.Map.FirstOrDefault(t => t.X == state.Width - 1 && t.Y == y);
+
+                if (leftTile != null) leftTile.EntityType = EntityVisualType.Wall;
+                if (rightTile != null) rightTile.EntityType = EntityVisualType.Wall;
+            }
         }
 
         private void InitializeEmptyMap(EditorStateDTO state)
@@ -637,7 +685,7 @@ namespace DungeonGame1{
             if (File.Exists(path))
             {
                 var json = File.ReadAllText(path);
-                var levelData = JsonConvert.DeserializeObject<LevelData>(json); // ← ИЗМЕНИЛ ЗДЕСЬ
+                var levelData = JsonConvert.DeserializeObject<LevelData>(json);
 
                 editorState = new EditorStateDTO
                 {
@@ -647,8 +695,48 @@ namespace DungeonGame1{
                     AvailableEntities = GetAvailableEntities(),
                     Map = levelData.Tiles
                 };
+
+                // Гарантируем, что есть стены по границам
+                EnsureBorders(editorState);
             }
             return editorState;
+        }
+
+        private void EnsureBorders(EditorStateDTO state)
+        {
+            // Проверяем и добавляем стены по границам, если их нет
+            for (int x = 0; x < state.Width; x++)
+            {
+                EnsureWallAt(state, x, 0); // Верх
+                EnsureWallAt(state, x, state.Height - 1); // Низ
+            }
+
+            for (int y = 1; y < state.Height - 1; y++)
+            {
+                EnsureWallAt(state, 0, y); // Лево
+                EnsureWallAt(state, state.Width - 1, y); // Право
+            }
+        }
+
+        private void EnsureWallAt(EditorStateDTO state, int x, int y)
+        {
+            var tile = state.Map.FirstOrDefault(t => t.X == x && t.Y == y);
+
+            if (tile == null)
+            {
+                state.Map.Add(new TileDTO
+                {
+                    X = x,
+                    Y = y,
+                    EntityType = EntityVisualType.Wall,
+                    FacingDirection = FacingDirection.Down
+                });
+            }
+            else if (tile.EntityType == EntityVisualType.Empty)
+            {
+                tile.EntityType = EntityVisualType.Wall;
+            }
+            // Если уже есть что-то важное (игрок, выход), не заменяем
         }
 
         public List<AvailableEntityDTO> GetAvailableEntities()
