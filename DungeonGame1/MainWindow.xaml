@@ -1,0 +1,10 @@
+﻿<Window x:Class="DungeonGame1.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Подземелье" Height="600" Width="800"
+        WindowStartupLocation="CenterScreen">
+    <Grid>
+        <!-- Frame для навигации между страницами -->
+        <Frame x:Name="MainFrame" NavigationUIVisibility="Hidden" />
+    </Grid>
+</Window>
