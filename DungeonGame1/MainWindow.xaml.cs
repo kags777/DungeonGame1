@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace DungeonGame1
@@ -16,9 +17,27 @@ namespace DungeonGame1
             MainFrame.Navigate(new MainMenuPage(this));
         }
 
-        public void StartGame(string levelId, bool isNewGame = true)
+        public void StartGame(string id, bool isNewGame = true)
         {
-            MainFrame.Navigate(new GamePage(this, levelId, isNewGame));
+            try
+            {
+                if (isNewGame)
+                {
+                    Console.WriteLine($"Starting NEW game with levelId: {id}");
+                }
+                else
+                {
+                    Console.WriteLine($"Loading SAVE with saveId: {id}");
+                }
+
+                MainFrame.Navigate(new GamePage(this, id, isNewGame));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при запуске игры: {ex.Message}", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                NavigateToMainMenu();
+            }
         }
 
         public void OpenEditor(string levelId = null)

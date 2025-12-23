@@ -201,21 +201,16 @@ namespace DungeonGame1{
         private TileDTO playerTile;
         private Random random = new Random();
         private string currentLevelId;
-        private bool isNewGame;
 
-        public GameSession(string levelId, bool isNewGame)
+        // Конструктор уже существует, просто правим его
+        public GameSession(string id, bool isNewGame)
         {
-            this.currentLevelId = levelId;
-            this.isNewGame = isNewGame;
-            InitializeGame(levelId, isNewGame);
-        }
-
-        private void InitializeGame(string levelId, bool isNewGame)
-        {
-            currentLevel = LoadLevel(levelId);
-
             if (isNewGame)
             {
+                // Новая игра - id это levelId
+                currentLevelId = id;
+                currentLevel = LoadLevel(id);
+
                 gameState = new GameStateDTO
                 {
                     Status = GameStatus.Playing,
@@ -230,29 +225,91 @@ namespace DungeonGame1{
             }
             else
             {
-                // Загрузка сохранения
-                var save = LoadSave(levelId);
-                gameState = save.GameState;
-                playerTile = gameState.Map.FirstOrDefault(t => t.EntityType == EntityVisualType.Player);
+                // Загрузка сохранения - id это saveId
+                var save = LoadSave(id);
+
+                if (save == null)
+                {
+                    // Если сохранение не найдено, создаем новую игру по умолчанию
+                    currentLevelId = "default";
+                    currentLevel = LoadLevel("default");
+
+                    gameState = new GameStateDTO
+                    {
+                        Status = GameStatus.Playing,
+                        Health = 100,
+                        MaxHealth = 100,
+                        Score = 0,
+                        CrystalsCollected = 0,
+                        TotalCrystals = currentLevel.Tiles.Count(t => t.EntityType == EntityVisualType.Crystal),
+                        Map = new List<TileDTO>(currentLevel.Tiles)
+                    };
+                    playerTile = gameState.Map.FirstOrDefault(t => t.EntityType == EntityVisualType.Player);
+                }
+                else
+                {
+                    // Загружаем сохранение
+                    currentLevelId = save.LevelId;
+                    currentLevel = LoadLevel(save.LevelId);
+                    gameState = save.GameState;
+                    playerTile = gameState.Map.FirstOrDefault(t => t.EntityType == EntityVisualType.Player);
+                }
             }
         }
 
+        // Остальные методы остаются без изменений
         private LevelData LoadLevel(string levelId)
         {
             var path = Path.Combine("Levels", $"{levelId}.json");
+
+            if (!File.Exists(path))
+            {
+                // Если файл уровня не найден, используем дефолтный
+                path = Path.Combine("Levels", "default.json");
+
+                if (!File.Exists(path))
+                {
+                    throw new FileNotFoundException($"Не найден уровень: {levelId} и дефолтный уровень");
+                }
+            }
+
             var json = File.ReadAllText(path);
-            return JsonConvert.DeserializeObject<LevelData>(json); // ← ИЗМЕНИЛ ЗДЕСЬ
+            return JsonConvert.DeserializeObject<LevelData>(json);
         }
 
         private SaveData LoadSave(string saveId)
         {
             var path = Path.Combine("Saves", $"{saveId}.json");
-            var json = File.ReadAllText(path);
-            return JsonConvert.DeserializeObject<SaveData>(json); // ← ИЗМЕНИЛ ЗДЕСЬ
+
+            if (!File.Exists(path))
+            {
+                // Пробуем найти любой файл сохранения
+                var saves = Directory.GetFiles("Saves", "*.json");
+                if (saves.Length > 0)
+                {
+                    path = saves[0]; // Берем первый найденный
+                }
+                else
+                {
+                    return null; // Нет сохранений
+                }
+            }
+
+            try
+            {
+                var json = File.ReadAllText(path);
+                return JsonConvert.DeserializeObject<SaveData>(json);
+            }
+            catch
+            {
+                return null; // Ошибка чтения файла
+            }
         }
 
+        // Остальные методы (MovePlayer, PlayerAttack и т.д.) остаются без изменений
         public GameStateDTO MovePlayer(FacingDirection direction)
         {
+            // ... существующий код без изменений
             if (gameState.Status != GameStatus.Playing || playerTile == null)
                 return gameState;
 
@@ -273,22 +330,19 @@ namespace DungeonGame1{
 
             if (targetTile == null)
             {
-                // Перемещение на пустую клетку
                 playerTile.X = newX;
                 playerTile.Y = newY;
             }
             else if (targetTile.EntityType == EntityVisualType.Empty)
             {
-                // Перемещение на пустую клетку
                 playerTile.X = newX;
                 playerTile.Y = newY;
             }
             else if (targetTile.EntityType == EntityVisualType.Crystal)
             {
-                // Сбор кристалла - ВАЖНО: удаляем тайл из списка!
                 playerTile.X = newX;
                 playerTile.Y = newY;
-                gameState.Map.Remove(targetTile); // ← УДАЛЯЕМ из списка
+                gameState.Map.Remove(targetTile);
                 gameState.Score += 50;
                 gameState.CrystalsCollected++;
 
@@ -299,10 +353,9 @@ namespace DungeonGame1{
             }
             else if (targetTile.EntityType == EntityVisualType.Trap)
             {
-                // Ловушка - удаляем после активации
                 playerTile.X = newX;
                 playerTile.Y = newY;
-                gameState.Map.Remove(targetTile); // ← УДАЛЯЕМ из списка
+                gameState.Map.Remove(targetTile);
                 gameState.Health -= 20;
                 gameState.Score -= 10;
 
@@ -313,17 +366,14 @@ namespace DungeonGame1{
             }
             else if (targetTile.EntityType == EntityVisualType.Exit)
             {
-                // Выход
                 gameState.Status = GameStatus.Victory;
             }
             else if (targetTile.EntityType == EntityVisualType.Wall)
             {
-                // Стена - не двигаемся
                 return gameState;
             }
             else if (targetTile.EntityType == EntityVisualType.Enemy)
             {
-                // Враг атакует игрока при движении на него
                 gameState.Health -= 10;
                 gameState.Score -= 5;
 
@@ -333,9 +383,7 @@ namespace DungeonGame1{
                 }
             }
 
-            // Движение врагов
             MoveEnemies();
-
             return gameState;
         }
 
@@ -346,28 +394,25 @@ namespace DungeonGame1{
             foreach (var enemy in enemies)
             {
                 var possibleMoves = new List<(int dx, int dy)>
-        {
-            (0, -1), (0, 1), (-1, 0), (1, 0)
-        }.OrderBy(x => random.Next()).ToList();
+            {
+                (0, -1), (0, 1), (-1, 0), (1, 0)
+            }.OrderBy(x => random.Next()).ToList();
 
                 foreach (var move in possibleMoves)
                 {
                     int newX = enemy.X + move.dx;
                     int newY = enemy.Y + move.dy;
 
-                    // Проверяем, есть ли в этой клетке что-то кроме врага
                     var existingTile = gameState.Map.FirstOrDefault(t => t.X == newX && t.Y == newY);
 
                     if (existingTile == null || existingTile.EntityType == EntityVisualType.Empty)
                     {
-                        // Клетка пустая - двигаемся
                         enemy.X = newX;
                         enemy.Y = newY;
                         break;
                     }
                     else if (existingTile.EntityType == EntityVisualType.Player)
                     {
-                        // Атака игрока
                         gameState.Health -= 10;
                         gameState.Score -= 5;
 
@@ -377,7 +422,6 @@ namespace DungeonGame1{
                         }
                         break;
                     }
-                    // Если есть стена, кристалл и т.д. - пробуем следующее направление
                 }
             }
         }
@@ -402,7 +446,7 @@ namespace DungeonGame1{
 
             if (target != null && target.EntityType == EntityVisualType.Enemy)
             {
-                gameState.Map.Remove(target); // ← ВАЖНО: удаляем врага из списка
+                gameState.Map.Remove(target);
                 gameState.Score += 100;
             }
 
@@ -438,7 +482,7 @@ namespace DungeonGame1{
             };
 
             var path = Path.Combine("Saves", $"{save.Id}.json");
-            var json = JsonConvert.SerializeObject(save, Formatting.Indented); // ← ИЗМЕНИЛ ЗДЕСЬ
+            var json = JsonConvert.SerializeObject(save, Formatting.Indented);
             File.WriteAllText(path, json);
 
             return AppState.MainMenu;

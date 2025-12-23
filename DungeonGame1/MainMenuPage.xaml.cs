@@ -27,17 +27,21 @@ namespace DungeonGame1
 
         private void ContinueBtn_Click(object sender, RoutedEventArgs e)
         {
-            // Простой выбор первого сохранения без диалога
-            var saves = menuService.GetAvailableSaves();
-            if (saves.Count > 0)
+            var dialog = new SaveSelectionDialog(menuService);
+            if (dialog.ShowDialog() == true)
             {
-                var lastSave = saves.OrderByDescending(s => s.SaveTime).First();
-                mainWindow.StartGame(lastSave.Id, false);
-            }
-            else
-            {
-                MessageBox.Show("Нет сохраненных игр!", "Информация",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
+                // dialog.SelectedSaveId - ID сохранения
+                // dialog.SelectedLevelId - ID уровня этого сохранения
+
+                // Создаем объект сохранения с обоими ID
+                var saveInfo = new
+                {
+                    SaveId = dialog.SelectedSaveId,
+                    LevelId = dialog.SelectedLevelId
+                };
+
+                // Передаем saveId и false (это сохранение)
+                mainWindow.StartGame(dialog.SelectedSaveId, false);
             }
         }
 
