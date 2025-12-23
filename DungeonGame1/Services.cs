@@ -530,7 +530,7 @@ namespace DungeonGame1{
 
         public EditorStateDTO CreateNewLevel()
         {
-            editorState = new EditorStateDTO
+            var newState = new EditorStateDTO
             {
                 LevelName = "Новый уровень",
                 Width = 10,
@@ -538,9 +538,28 @@ namespace DungeonGame1{
                 AvailableEntities = GetAvailableEntities(),
                 Map = new List<TileDTO>()
             };
-            InitializeEmptyMap();
-            return editorState;
+
+            InitializeEmptyMap(newState);
+            return newState;
         }
+
+        private void InitializeEmptyMap(EditorStateDTO state)
+        {
+            for (int y = 0; y < state.Height; y++)
+            {
+                for (int x = 0; x < state.Width; x++)
+                {
+                    state.Map.Add(new TileDTO
+                    {
+                        X = x,
+                        Y = y,
+                        EntityType = EntityVisualType.Empty,
+                        FacingDirection = FacingDirection.Down
+                    });
+                }
+            }
+        }
+
 
         public EditorStateDTO LoadLevel(string levelId)
         {
@@ -578,22 +597,37 @@ namespace DungeonGame1{
 
         public EditorStateDTO PlaceEntity(int x, int y, EntityVisualType entityType)
         {
+            // Находим или создаем тайл
             var tile = editorState.Map.FirstOrDefault(t => t.X == x && t.Y == y);
-            if (tile != null)
+
+            if (tile == null)
             {
-                // Если ставим игрока, удаляем старого
-                if (entityType == EntityVisualType.Player)
+                // Если тайла нет - создаем новый
+                tile = new TileDTO { X = x, Y = y, EntityType = entityType };
+                editorState.Map.Add(tile);
+            }
+            else
+            {
+                // Если тайл уже существует - обновляем его
+                tile.EntityType = entityType;
+            }
+
+            // Если ставим игрока, удаляем старого
+            if (entityType == EntityVisualType.Player)
+            {
+                var oldPlayer = editorState.Map
+                    .Where(t => t != tile) // исключаем текущий тайл
+                    .FirstOrDefault(t => t.EntityType == EntityVisualType.Player);
+                if (oldPlayer != null)
                 {
-                    var oldPlayer = editorState.Map.FirstOrDefault(t => t.EntityType == EntityVisualType.Player);
-                    if (oldPlayer != null)
-                    {
-                        oldPlayer.EntityType = EntityVisualType.Empty;
-                    }
+                    oldPlayer.EntityType = EntityVisualType.Empty;
                 }
 
-                tile.EntityType = entityType;
-                selectedEntity = entityType;
+                // Устанавливаем направление игрока
+                tile.FacingDirection = FacingDirection.Right;
             }
+
+            selectedEntity = entityType;
             return editorState;
         }
 
@@ -603,6 +637,12 @@ namespace DungeonGame1{
             if (tile != null)
             {
                 tile.EntityType = EntityVisualType.Empty;
+            }
+            else
+            {
+                // Если тайла нет - создаем пустой
+                tile = new TileDTO { X = x, Y = y, EntityType = EntityVisualType.Empty };
+                editorState.Map.Add(tile);
             }
             return editorState;
         }

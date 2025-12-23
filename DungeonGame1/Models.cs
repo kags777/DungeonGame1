@@ -59,6 +59,7 @@ namespace DungeonGame1
     {
         public EntityVisualType Type { get; set; }
         public string Name { get; set; }
+        public string Symbol { get; set; } 
     }
 
     public class LevelData
@@ -77,4 +78,6 @@ namespace DungeonGame1
         public string SaveTime { get; set; }
         public GameStateDTO GameState { get; set; }
     }
+
+
 }

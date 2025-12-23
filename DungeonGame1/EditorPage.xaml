@@ -1,7 +1,8 @@
 ﻿<Page x:Class="DungeonGame1.EditorPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      Title="Редактор уровней" Background="#1a1a2e">
+      Title="Редактор уровней" Background="#1a1a2e"
+      MouseDown="Page_MouseDown">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
@@ -9,10 +10,10 @@
         </Grid.ColumnDefinitions>
 
         <!-- Панель инструментов -->
-        <Border Grid.Column="0" Background="#16213e" Width="150">
+        <Border Grid.Column="0" Background="#16213e" Width="180">
             <StackPanel Margin="10">
-                <TextBlock Text="Редактор уровней" 
-                           Foreground="White" 
+                <TextBlock Text="🧩 РЕДАКТОР УРОВНЕЙ" 
+                           Foreground="#e94560" 
                            FontSize="16" 
                            FontWeight="Bold"
                            Margin="0,0,0,20"/>
@@ -22,18 +23,36 @@
                            Margin="0,0,0,10"/>
 
                 <ListBox x:Name="EntitiesListBox" 
-                         Height="200"
+                         Height="220"
                          Background="#0f3460"
                          BorderBrush="#e94560"
                          SelectionChanged="EntitiesListBox_SelectionChanged">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding Name}" 
-                                       Foreground="White" 
-                                       Margin="5"/>
+                            <StackPanel Orientation="Horizontal" Margin="3">
+                                <TextBlock Text="{Binding Symbol}" 
+                                           FontSize="20" 
+                                           Margin="0,0,10,0"/>
+                                <TextBlock Text="{Binding Name}" 
+                                           Foreground="White" 
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
+
+                <TextBlock Text="Размер уровня:" 
+                           Foreground="White" 
+                           Margin="0,20,0,10"/>
+
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Ш:" Foreground="White" VerticalAlignment="Center"/>
+                    <TextBox x:Name="WidthBox" Text="10" Width="40" Margin="5"
+                             TextChanged="SizeBox_TextChanged"/>
+                    <TextBlock Text="В:" Foreground="White" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                    <TextBox x:Name="HeightBox" Text="10" Width="40" Margin="5"
+                             TextChanged="SizeBox_TextChanged"/>
+                </StackPanel>
 
                 <TextBox x:Name="LevelNameBox" 
                          Text="Новый уровень"
@@ -42,42 +61,61 @@
                          Foreground="White"
                          BorderBrush="#e94560"/>
 
-                <StackPanel>
-                    <Button Content="Новый уровень" 
-                            Margin="0,5" Height="30"
+                <StackPanel Margin="0,10,0,0">
+                    <Button Content="🗺️ Новый уровень" 
+                            Margin="0,5" Height="35"
                             Click="NewLevelBtn_Click"
-                            Background="#0984e3" Foreground="White"/>
-                    <Button Content="Сохранить" 
-                            Margin="0,5" Height="30"
+                            Background="#0984e3" Foreground="White"
+                            FontWeight="Bold"/>
+                    <Button Content="💾 Сохранить" 
+                            Margin="0,5" Height="35"
                             Click="SaveBtn_Click"
-                            Background="#00b894" Foreground="White"/>
-                    <Button Content="В меню" 
-                            Margin="0,5" Height="30"
+                            Background="#00b894" Foreground="White"
+                            FontWeight="Bold"/>
+                    <Button Content="🚪 В меню" 
+                            Margin="0,5" Height="35"
                             Click="MenuBtn_Click"
-                            Background="#e17055" Foreground="White"/>
+                            Background="#e17055" Foreground="White"
+                            FontWeight="Bold"/>
                 </StackPanel>
+
+                <Border Background="#0f1c30" Margin="0,20,0,0" Padding="10" CornerRadius="5">
+                    <TextBlock Text="Управление:
+• ЛКМ - поставить объект
+• ПКМ - очистить клетку
+• Средняя кнопка - взять объект
+• Ctrl+Z - отменить
+• Ctrl+Y - вернуть" 
+                               Foreground="LightGray" 
+                               FontSize="12"/>
+                </Border>
             </StackPanel>
         </Border>
 
         <!-- Редактор карты -->
-        <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto" 
+                      VerticalScrollBarVisibility="Auto" Padding="10">
             <ItemsControl x:Name="EditorGrid">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <UniformGrid x:Name="MapGrid" Background="#0f3460"/>
+                        <UniformGrid x:Name="MapGrid" Rows="{Binding EditorHeight}" 
+                                     Columns="{Binding EditorWidth}" 
+                                     Background="#0f1c30"/>
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border Width="40" Height="40" 
-                                BorderBrush="#16213e" 
-                                BorderThickness="1"
-                                MouseDown="Tile_MouseDown">
+                        <Border Width="50" Height="50" 
+                                BorderBrush="#2a3b5c" BorderThickness="1"
+                                Background="{Binding BackgroundColor}"
+                                MouseDown="Tile_MouseDown"
+                                ToolTip="{Binding ToolTipText}">
                             <TextBlock Text="{Binding Symbol}" 
-                                       FontSize="24" 
+                                       FontSize="28" 
                                        HorizontalAlignment="Center" 
                                        VerticalAlignment="Center"
-                                       Foreground="{Binding Color}"/>
+                                       Foreground="{Binding Color}"
+                                       FontWeight="Bold"/>
                         </Border>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
