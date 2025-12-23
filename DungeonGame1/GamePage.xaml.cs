@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -7,16 +8,44 @@ using System.Windows.Media;
 
 namespace DungeonGame1
 {
-    public partial class GamePage : Page
+    public partial class GamePage : Page, INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void OnPropertyChanged(string name) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
         private MainWindow mainWindow;
         private IGameSession gameSession;
         private GameStateDTO currentState;
+
         private int mapWidth = 10;
         private int mapHeight = 10;
 
-        public int MapWidth => mapWidth;
-        public int MapHeight => mapHeight;
+        public int MapWidth
+        {
+            get => mapWidth;
+            set
+            {
+                if (mapWidth != value)
+                {
+                    mapWidth = value;
+                    OnPropertyChanged(nameof(MapWidth));
+                }
+            }
+        }
+
+        public int MapHeight
+        {
+            get => mapHeight;
+            set
+            {
+                if (mapHeight != value)
+                {
+                    mapHeight = value;
+                    OnPropertyChanged(nameof(MapHeight));
+                }
+            }
+        }
 
         public GamePage(MainWindow window, string levelId, bool isNewGame)
         {
@@ -45,25 +74,25 @@ namespace DungeonGame1
             ScoreText.Text = currentState.Score.ToString();
             CrystalsText.Text = $"{currentState.CrystalsCollected}/{currentState.TotalCrystals}";
 
-            // Находим размеры карты
+            // Определяем размеры карты
             if (currentState.Map.Any())
             {
-                mapWidth = currentState.Map.Max(t => t.X) + 1;
-                mapHeight = currentState.Map.Max(t => t.Y) + 1;
+                MapWidth = currentState.Map.Max(t => t.X) + 1;
+                MapHeight = currentState.Map.Max(t => t.Y) + 1;
             }
             else
             {
-                mapWidth = 10;
-                mapHeight = 10;
+                MapWidth = 10;
+                MapHeight = 10;
             }
 
-            // Создаем сетку для отображения
-            var displayGrid = new DisplayTile[mapHeight, mapWidth];
+            // Создаем сетку
+            var displayGrid = new DisplayTile[MapHeight, MapWidth];
 
-            // Инициализируем все клетки как пустые
-            for (int y = 0; y < mapHeight; y++)
+            // Инициализируем пустыми клетками
+            for (int y = 0; y < MapHeight; y++)
             {
-                for (int x = 0; x < mapWidth; x++)
+                for (int x = 0; x < MapWidth; x++)
                 {
                     displayGrid[y, x] = new DisplayTile
                     {
@@ -75,28 +104,25 @@ namespace DungeonGame1
                 }
             }
 
-            // Заполняем реальными объектами из карты
+            // Заполняем реальными объектами
             foreach (var tile in currentState.Map)
             {
-                if (tile.X >= 0 && tile.X < mapWidth && tile.Y >= 0 && tile.Y < mapHeight)
+                if (tile.X >= 0 && tile.X < MapWidth &&
+                    tile.Y >= 0 && tile.Y < MapHeight)
                 {
                     displayGrid[tile.Y, tile.X] = new DisplayTile(tile);
                 }
             }
 
-            // Преобразуем в плоский список для ItemsControl
+            // Преобразуем в список
             var displayTiles = new List<DisplayTile>();
-            for (int y = 0; y < mapHeight; y++)
-            {
-                for (int x = 0; x < mapWidth; x++)
-                {
+            for (int y = 0; y < MapHeight; y++)
+                for (int x = 0; x < MapWidth; x++)
                     displayTiles.Add(displayGrid[y, x]);
-                }
-            }
 
             GameGrid.ItemsSource = displayTiles;
 
-            // Проверяем состояние игры
+            // Проверка состояния игры
             if (currentState.Status == GameStatus.Victory)
             {
                 MessageBox.Show($"🎉 Победа! Вы набрали {currentState.Score} очков!",
@@ -264,5 +290,6 @@ namespace DungeonGame1
                     return "☻";
             }
         }
+
     }
 }
