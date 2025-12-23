@@ -271,7 +271,13 @@ namespace DungeonGame1{
 
             var targetTile = gameState.Map.FirstOrDefault(t => t.X == newX && t.Y == newY);
 
-            if (targetTile == null || targetTile.EntityType == EntityVisualType.Empty)
+            if (targetTile == null)
+            {
+                // Перемещение на пустую клетку
+                playerTile.X = newX;
+                playerTile.Y = newY;
+            }
+            else if (targetTile.EntityType == EntityVisualType.Empty)
             {
                 // Перемещение на пустую клетку
                 playerTile.X = newX;
@@ -279,10 +285,10 @@ namespace DungeonGame1{
             }
             else if (targetTile.EntityType == EntityVisualType.Crystal)
             {
-                // Сбор кристалла
+                // Сбор кристалла - ВАЖНО: удаляем тайл из списка!
                 playerTile.X = newX;
                 playerTile.Y = newY;
-                targetTile.EntityType = EntityVisualType.Empty;
+                gameState.Map.Remove(targetTile); // ← УДАЛЯЕМ из списка
                 gameState.Score += 50;
                 gameState.CrystalsCollected++;
 
@@ -293,10 +299,10 @@ namespace DungeonGame1{
             }
             else if (targetTile.EntityType == EntityVisualType.Trap)
             {
-                // Ловушка
+                // Ловушка - удаляем после активации
                 playerTile.X = newX;
                 playerTile.Y = newY;
-                targetTile.EntityType = EntityVisualType.Empty;
+                gameState.Map.Remove(targetTile); // ← УДАЛЯЕМ из списка
                 gameState.Health -= 20;
                 gameState.Score -= 10;
 
@@ -309,6 +315,22 @@ namespace DungeonGame1{
             {
                 // Выход
                 gameState.Status = GameStatus.Victory;
+            }
+            else if (targetTile.EntityType == EntityVisualType.Wall)
+            {
+                // Стена - не двигаемся
+                return gameState;
+            }
+            else if (targetTile.EntityType == EntityVisualType.Enemy)
+            {
+                // Враг атакует игрока при движении на него
+                gameState.Health -= 10;
+                gameState.Score -= 5;
+
+                if (gameState.Health <= 0)
+                {
+                    gameState.Status = GameStatus.Defeat;
+                }
             }
 
             // Движение врагов
@@ -324,24 +346,26 @@ namespace DungeonGame1{
             foreach (var enemy in enemies)
             {
                 var possibleMoves = new List<(int dx, int dy)>
-                {
-                    (0, -1), (0, 1), (-1, 0), (1, 0)
-                }.OrderBy(x => random.Next()).ToList();
+        {
+            (0, -1), (0, 1), (-1, 0), (1, 0)
+        }.OrderBy(x => random.Next()).ToList();
 
                 foreach (var move in possibleMoves)
                 {
                     int newX = enemy.X + move.dx;
                     int newY = enemy.Y + move.dy;
 
-                    var targetTile = gameState.Map.FirstOrDefault(t => t.X == newX && t.Y == newY);
+                    // Проверяем, есть ли в этой клетке что-то кроме врага
+                    var existingTile = gameState.Map.FirstOrDefault(t => t.X == newX && t.Y == newY);
 
-                    if (targetTile != null && targetTile.EntityType == EntityVisualType.Empty)
+                    if (existingTile == null || existingTile.EntityType == EntityVisualType.Empty)
                     {
+                        // Клетка пустая - двигаемся
                         enemy.X = newX;
                         enemy.Y = newY;
                         break;
                     }
-                    else if (targetTile != null && targetTile.EntityType == EntityVisualType.Player)
+                    else if (existingTile.EntityType == EntityVisualType.Player)
                     {
                         // Атака игрока
                         gameState.Health -= 10;
@@ -353,6 +377,7 @@ namespace DungeonGame1{
                         }
                         break;
                     }
+                    // Если есть стена, кристалл и т.д. - пробуем следующее направление
                 }
             }
         }
@@ -377,7 +402,7 @@ namespace DungeonGame1{
 
             if (target != null && target.EntityType == EntityVisualType.Enemy)
             {
-                target.EntityType = EntityVisualType.Empty;
+                gameState.Map.Remove(target); // ← ВАЖНО: удаляем врага из списка
                 gameState.Score += 100;
             }
 

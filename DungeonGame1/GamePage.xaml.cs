@@ -24,9 +24,7 @@ namespace DungeonGame1
             mainWindow = window;
             gameSession = new GameSession(levelId, isNewGame);
 
-            // Устанавливаем DataContext для привязок
             DataContext = this;
-
             Loaded += (s, e) => UpdateGameDisplay();
             Focus();
         }
@@ -38,6 +36,8 @@ namespace DungeonGame1
 
         private void UpdateGameDisplay()
         {
+            if (gameSession == null) return;
+
             currentState = gameSession.GetGameState();
 
             // Обновляем статус
@@ -51,42 +51,50 @@ namespace DungeonGame1
                 mapWidth = currentState.Map.Max(t => t.X) + 1;
                 mapHeight = currentState.Map.Max(t => t.Y) + 1;
             }
+            else
+            {
+                mapWidth = 10;
+                mapHeight = 10;
+            }
 
-            // Создаем отображаемые тайлы
-            var displayTiles = new List<DisplayTile>();
+            // Создаем сетку для отображения
+            var displayGrid = new DisplayTile[mapHeight, mapWidth];
 
-            // Сначала заполняем все клетки пустотой
+            // Инициализируем все клетки как пустые
             for (int y = 0; y < mapHeight; y++)
             {
                 for (int x = 0; x < mapWidth; x++)
                 {
-                    displayTiles.Add(new DisplayTile
+                    displayGrid[y, x] = new DisplayTile
                     {
                         X = x,
                         Y = y,
                         EntityType = EntityVisualType.Empty
-                    });
+                    };
+                    displayGrid[y, x].UpdateVisuals();
                 }
             }
 
-            // Затем накладываем реальные объекты
+            // Заполняем реальными объектами из карты
             foreach (var tile in currentState.Map)
             {
-                var displayTile = displayTiles.FirstOrDefault(t => t.X == tile.X && t.Y == tile.Y);
-                if (displayTile != null)
+                if (tile.X >= 0 && tile.X < mapWidth && tile.Y >= 0 && tile.Y < mapHeight)
                 {
-                    displayTile.EntityType = tile.EntityType;
-                    displayTile.FacingDirection = tile.FacingDirection;
-                    displayTile.UpdateVisuals();
-                }
-                else if (tile.X >= 0 && tile.X < mapWidth && tile.Y >= 0 && tile.Y < mapHeight)
-                {
-                    // Добавляем новый тайл, если его нет
-                    displayTiles.Add(new DisplayTile(tile));
+                    displayGrid[tile.Y, tile.X] = new DisplayTile(tile);
                 }
             }
 
-            GameGrid.ItemsSource = displayTiles.OrderBy(t => t.Y).ThenBy(t => t.X);
+            // Преобразуем в плоский список для ItemsControl
+            var displayTiles = new List<DisplayTile>();
+            for (int y = 0; y < mapHeight; y++)
+            {
+                for (int x = 0; x < mapWidth; x++)
+                {
+                    displayTiles.Add(displayGrid[y, x]);
+                }
+            }
+
+            GameGrid.ItemsSource = displayTiles;
 
             // Проверяем состояние игры
             if (currentState.Status == GameStatus.Victory)
@@ -232,7 +240,7 @@ namespace DungeonGame1
                     Color = Brushes.LightGreen;
                     BackgroundColor = Brushes.DarkGreen;
                     break;
-                default:
+                case EntityVisualType.Empty:
                     Symbol = "·";
                     Color = Brushes.DimGray;
                     BackgroundColor = Brushes.Transparent;
