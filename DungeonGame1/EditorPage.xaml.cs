@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,6 +12,7 @@ namespace DungeonGame1
     {
         private MainWindow mainWindow;
         private ILevelEditorService editorService;
+        private IMainMenuService menuService;
         private EditorStateDTO currentState;
         private EntityVisualType selectedEntity = EntityVisualType.Wall;
 
@@ -22,6 +24,7 @@ namespace DungeonGame1
             InitializeComponent();
             mainWindow = window;
             editorService = new LevelEditorService();
+            menuService = new MainMenuService();
 
             if (!string.IsNullOrEmpty(levelId))
             {
@@ -41,7 +44,6 @@ namespace DungeonGame1
         {
             InitializeEditor();
         }
-
 
         private void InitializeEditor()
         {
@@ -148,7 +150,7 @@ namespace DungeonGame1
                 return;
 
             if (currentState == null)
-                return; // ← вот этого у тебя не было
+                return;
 
             if (int.TryParse(WidthBox.Text, out int width) &&
                 int.TryParse(HeightBox.Text, out int height) &&
@@ -164,8 +166,6 @@ namespace DungeonGame1
                 UpdateEditorDisplay();
             }
         }
-
-
 
         private void NewLevelBtn_Click(object sender, RoutedEventArgs e)
         {
@@ -183,7 +183,6 @@ namespace DungeonGame1
             HeightBox.Text = currentState.Height.ToString();
             UpdateEditorDisplay();
         }
-
 
         private void SaveBtn_Click(object sender, RoutedEventArgs e)
         {
@@ -203,6 +202,55 @@ namespace DungeonGame1
             }
         }
 
+        private void DeleteLevelBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(LevelNameBox.Text) ||
+                LevelNameBox.Text == "Новый уровень")
+            {
+                MessageBox.Show("Сначала загрузите уровень для удаления!", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var result = MessageBox.Show(
+                $"Вы действительно хотите удалить уровень '{LevelNameBox.Text}'?\n\n" +
+                "Это действие невозможно отменить!",
+                "Подтверждение удаления",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                try
+                {
+                    // Находим файл уровня по названию
+                    var levels = menuService.GetAvailableLevels();
+                    var levelToDelete = levels.FirstOrDefault(l => l.Name == LevelNameBox.Text);
+
+                    if (levelToDelete != null)
+                    {
+                        bool deleted = menuService.DeleteLevel(levelToDelete.Id);
+                        if (deleted)
+                        {
+                            MessageBox.Show($"Уровень '{LevelNameBox.Text}' удален!",
+                                "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                            NewLevelBtn_Click(sender, e); // Создаем новый уровень
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("Уровень не найден! Возможно, он уже удален.",
+                            "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Ошибка при удалении: {ex.Message}", "Ошибка",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
         private void MenuBtn_Click(object sender, RoutedEventArgs e)
         {
             var result = MessageBox.Show("Выйти без сохранения?", "Подтверждение",
@@ -211,6 +259,20 @@ namespace DungeonGame1
             if (result == MessageBoxResult.Yes)
             {
                 mainWindow.NavigateToMainMenu();
+            }
+        }
+
+        private void LoadLevelBtn_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new LevelSelectionDialog(menuService, false);
+            dialog.Title = "Загрузить уровень для редактирования";
+            if (dialog.ShowDialog() == true)
+            {
+                currentState = editorService.LoadLevel(dialog.SelectedLevelId);
+                LevelNameBox.Text = currentState.LevelName;
+                WidthBox.Text = currentState.Width.ToString();
+                HeightBox.Text = currentState.Height.ToString();
+                UpdateEditorDisplay();
             }
         }
     }

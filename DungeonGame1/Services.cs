@@ -16,6 +16,7 @@ namespace DungeonGame1{
         AppState ContinueGame(string saveId);
         AppState OpenEditor(string levelId);
         AppState ExitApp();
+        bool DeleteLevel(string levelId); // ДОБАВЛЕНО
     }
 
     public interface IGameSession
@@ -171,6 +172,75 @@ namespace DungeonGame1{
         {
             Application.Current.Shutdown();
             return AppState.Exit;
+        }
+        // === ДОБАВЬТЕ ЭТОТ МЕТОД СЮДА ===
+        public bool DeleteLevel(string levelId)
+        {
+            try
+            {
+                var levelPath = Path.Combine(levelsPath, $"{levelId}.json");
+
+                if (File.Exists(levelPath))
+                {
+                    // Проверяем, есть ли связанные сохранения
+                    var saveFiles = Directory.GetFiles(savesPath, "*.json");
+                    bool hasRelatedSaves = false;
+
+                    foreach (var saveFile in saveFiles)
+                    {
+                        try
+                        {
+                            var json = File.ReadAllText(saveFile);
+                            var save = JsonConvert.DeserializeObject<SaveData>(json);
+                            if (save?.LevelId == levelId)  // Добавил проверку на null
+                            {
+                                hasRelatedSaves = true;
+                                break;
+                            }
+                        }
+                        catch { }
+                    }
+
+                    if (hasRelatedSaves)
+                    {
+                        var result = MessageBox.Show(
+                            $"У этого уровня есть сохранения. Удалить их тоже?",
+                            "Подтверждение",
+                            MessageBoxButton.YesNoCancel,
+                            MessageBoxImage.Question);
+
+                        if (result == MessageBoxResult.Cancel)
+                            return false;
+
+                        if (result == MessageBoxResult.Yes)
+                        {
+                            foreach (var saveFile in saveFiles)
+                            {
+                                try
+                                {
+                                    var json = File.ReadAllText(saveFile);
+                                    var save = JsonConvert.DeserializeObject<SaveData>(json);
+                                    if (save?.LevelId == levelId)  // Добавил проверку на null
+                                    {
+                                        File.Delete(saveFile);
+                                    }
+                                }
+                                catch { }
+                            }
+                        }
+                    }
+
+                    File.Delete(levelPath);
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при удалении уровня: {ex.Message}", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
         }
 
         private LevelData LoadLevelFromFile(string path)
@@ -668,6 +738,79 @@ namespace DungeonGame1{
         public EditorStateDTO GetEditorState()
         {
             return editorState;
+        }
+        public bool DeleteLevel(string levelId)
+        {
+            try
+            {
+                var levelsPath = "Levels"; // ДОБАВЛЕНО: определение переменной
+                var savesPath = "Saves"; // ДОБАВЛЕНО: определение переменной
+
+                var levelPath = Path.Combine(levelsPath, $"{levelId}.json");
+
+                if (File.Exists(levelPath))
+                {
+                    // Проверяем, есть ли связанные сохранения
+                    var saveFiles = Directory.GetFiles(savesPath, "*.json"); // ИСПРАВЛЕНО: savesPath вместо savesPath
+                    bool hasRelatedSaves = false;
+
+                    foreach (var saveFile in saveFiles)
+                    {
+                        try
+                        {
+                            var json = File.ReadAllText(saveFile);
+                            var save = JsonConvert.DeserializeObject<SaveData>(json);
+                            if (save.LevelId == levelId)
+                            {
+                                hasRelatedSaves = true;
+                                break;
+                            }
+                        }
+                        catch { }
+                    }
+
+                    if (hasRelatedSaves)
+                    {
+                        // Если есть сохранения этого уровня, спрашиваем
+                        var result = MessageBox.Show(
+                            $"У этого уровня есть сохранения. Удалить их тоже?",
+                            "Подтверждение",
+                            MessageBoxButton.YesNoCancel,
+                            MessageBoxImage.Question);
+
+                        if (result == MessageBoxResult.Cancel)
+                            return false;
+
+                        if (result == MessageBoxResult.Yes)
+                        {
+                            // Удаляем все сохранения этого уровня
+                            foreach (var saveFile in saveFiles)
+                            {
+                                try
+                                {
+                                    var json = File.ReadAllText(saveFile);
+                                    var save = JsonConvert.DeserializeObject<SaveData>(json);
+                                    if (save.LevelId == levelId)
+                                    {
+                                        File.Delete(saveFile);
+                                    }
+                                }
+                                catch { }
+                            }
+                        }
+                    }
+
+                    File.Delete(levelPath);
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при удалении уровня: {ex.Message}", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
         }
     }
 }

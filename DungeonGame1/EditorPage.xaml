@@ -10,86 +10,125 @@
         </Grid.ColumnDefinitions>
 
         <!-- Панель инструментов -->
-        <Border Grid.Column="0" Background="#16213e" Width="180">
-            <StackPanel Margin="10">
-                <TextBlock Text="🧩 РЕДАКТОР УРОВНЕЙ" 
-                           Foreground="#e94560" 
-                           FontSize="16" 
-                           FontWeight="Bold"
-                           Margin="0,0,0,20"/>
+        <Border Grid.Column="0" Background="#16213e" Width="200">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="10">
+                    <TextBlock Text="🧩 РЕДАКТОР УРОВНЕЙ" 
+                               Foreground="#e94560" 
+                               FontSize="16" 
+                               FontWeight="Bold"
+                               Margin="0,0,0,20"
+                               TextWrapping="Wrap"/>
 
-                <TextBlock Text="Выберите объект:" 
-                           Foreground="White" 
-                           Margin="0,0,0,10"/>
+                    <!-- Управление уровнями -->
+                    <Border Background="#0f1c30" Margin="0,0,0,15" Padding="8" CornerRadius="5">
+                        <StackPanel>
+                            <TextBlock Text="УРОВЕНЬ" 
+                                       Foreground="White" 
+                                       FontWeight="Bold"
+                                       Margin="0,0,0,5"/>
 
-                <ListBox x:Name="EntitiesListBox" 
-                         Height="220"
-                         Background="#0f3460"
-                         BorderBrush="#e94560"
-                         SelectionChanged="EntitiesListBox_SelectionChanged">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal" Margin="3">
-                                <TextBlock Text="{Binding Symbol}" 
-                                           FontSize="20" 
-                                           Margin="0,0,10,0"/>
-                                <TextBlock Text="{Binding Name}" 
-                                           Foreground="White" 
-                                           VerticalAlignment="Center"/>
+                            <TextBox x:Name="LevelNameBox" 
+                                     Text="Новый уровень"
+                                     Margin="0,0,0,5"
+                                     Background="#0f3460"
+                                     Foreground="White"
+                                     BorderBrush="#e94560"
+                                     ToolTip="Название уровня"/>
+
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                <TextBlock Text="Ш:" Foreground="White" VerticalAlignment="Center" Width="20"/>
+                                <TextBox x:Name="WidthBox" Text="10" Width="40" Margin="2"
+                                         TextChanged="SizeBox_TextChanged"
+                                         ToolTip="Ширина уровня (1-50)"/>
+                                <TextBlock Text="В:" Foreground="White" VerticalAlignment="Center" Margin="5,0,0,0" Width="20"/>
+                                <TextBox x:Name="HeightBox" Text="10" Width="40" Margin="2"
+                                         TextChanged="SizeBox_TextChanged"
+                                         ToolTip="Высота уровня (1-50)"/>
                             </StackPanel>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
+                        </StackPanel>
+                    </Border>
 
-                <TextBlock Text="Размер уровня:" 
-                           Foreground="White" 
-                           Margin="0,20,0,10"/>
+                    <!-- Кнопки управления уровнями -->
+                    <StackPanel Margin="0,0,0,15">
+                        <Button Content="📂 Загрузить уровень" 
+                                Margin="0,2" Height="35"
+                                Click="LoadLevelBtn_Click"
+                                Background="#0984e3" Foreground="White"
+                                FontWeight="Bold"
+                                ToolTip="Загрузить существующий уровень"/>
+                        <Button Content="🗺️ Новый уровень" 
+                                Margin="0,2" Height="35"
+                                Click="NewLevelBtn_Click"
+                                Background="#0984e3" Foreground="White"
+                                FontWeight="Bold"
+                                ToolTip="Создать новый пустой уровень"/>
+                        <Button Content="💾 Сохранить уровень" 
+                                Margin="0,2" Height="35"
+                                Click="SaveBtn_Click"
+                                Background="#00b894" Foreground="White"
+                                FontWeight="Bold"
+                                ToolTip="Сохранить текущий уровень"/>
+                        <Button Content="🗑️ Удалить уровень" 
+                                Margin="0,2" Height="35"
+                                Click="DeleteLevelBtn_Click"
+                                Background="#d63031" Foreground="White"
+                                FontWeight="Bold"
+                                ToolTip="Удалить загруженный уровень"/>
+                    </StackPanel>
 
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Ш:" Foreground="White" VerticalAlignment="Center"/>
-                    <TextBox x:Name="WidthBox" Text="10" Width="40" Margin="5"
-                             TextChanged="SizeBox_TextChanged"/>
-                    <TextBlock Text="В:" Foreground="White" VerticalAlignment="Center" Margin="10,0,0,0"/>
-                    <TextBox x:Name="HeightBox" Text="10" Width="40" Margin="5"
-                             TextChanged="SizeBox_TextChanged"/>
-                </StackPanel>
+                    <!-- Выбор объектов -->
+                    <Border Background="#0f1c30" Margin="0,0,0,15" Padding="8" CornerRadius="5">
+                        <StackPanel>
+                            <TextBlock Text="ОБЪЕКТЫ" 
+                                       Foreground="White" 
+                                       FontWeight="Bold"
+                                       Margin="0,0,0,5"/>
 
-                <TextBox x:Name="LevelNameBox" 
-                         Text="Новый уровень"
-                         Margin="0,20,0,10"
-                         Background="#0f3460"
-                         Foreground="White"
-                         BorderBrush="#e94560"/>
+                            <ListBox x:Name="EntitiesListBox" 
+                                     Height="220"
+                                     Background="#0f3460"
+                                     BorderBrush="#e94560"
+                                     SelectionChanged="EntitiesListBox_SelectionChanged">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" Margin="3">
+                                            <TextBlock Text="{Binding Symbol}" 
+                                                       FontSize="20" 
+                                                       Margin="0,0,10,0"
+                                                       Width="30"/>
+                                            <TextBlock Text="{Binding Name}" 
+                                                       Foreground="White" 
+                                                       VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </StackPanel>
+                    </Border>
 
-                <StackPanel Margin="0,10,0,0">
-                    <Button Content="🗺️ Новый уровень" 
-                            Margin="0,5" Height="35"
-                            Click="NewLevelBtn_Click"
-                            Background="#0984e3" Foreground="White"
-                            FontWeight="Bold"/>
-                    <Button Content="💾 Сохранить" 
-                            Margin="0,5" Height="35"
-                            Click="SaveBtn_Click"
-                            Background="#00b894" Foreground="White"
-                            FontWeight="Bold"/>
+                    <!-- Управление -->
                     <Button Content="🚪 В меню" 
-                            Margin="0,5" Height="35"
+                            Margin="0,2" Height="35"
                             Click="MenuBtn_Click"
                             Background="#e17055" Foreground="White"
-                            FontWeight="Bold"/>
-                </StackPanel>
+                            FontWeight="Bold"
+                            ToolTip="Вернуться в главное меню"/>
 
-                <Border Background="#0f1c30" Margin="0,20,0,0" Padding="10" CornerRadius="5">
-                    <TextBlock Text="Управление:
+                    <!-- Подсказки -->
+                    <Border Background="#0f1c30" Margin="0,15,0,0" Padding="10" CornerRadius="5">
+                        <TextBlock Text="Управление редактором:
 • ЛКМ - поставить объект
 • ПКМ - очистить клетку
 • Средняя кнопка - взять объект
-• Ctrl+Z - отменить
-• Ctrl+Y - вернуть" 
-                               Foreground="LightGray" 
-                               FontSize="12"/>
-                </Border>
-            </StackPanel>
+• Измените размер в полях Ш/В
+• Сохраните перед выходом" 
+                                   Foreground="LightGray" 
+                                   FontSize="11"
+                                   TextWrapping="Wrap"/>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
         </Border>
 
         <!-- Редактор карты -->

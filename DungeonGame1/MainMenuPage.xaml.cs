@@ -33,15 +33,10 @@ namespace DungeonGame1
                 // dialog.SelectedSaveId - ID сохранения
                 // dialog.SelectedLevelId - ID уровня этого сохранения
 
-                // Создаем объект сохранения с обоими ID
-                var saveInfo = new
-                {
-                    SaveId = dialog.SelectedSaveId,
-                    LevelId = dialog.SelectedLevelId
-                };
-
                 // Передаем saveId и false (это сохранение)
                 mainWindow.StartGame(dialog.SelectedSaveId, false);
+
+                // УДАЛЕНО: ненужное создание объекта saveInfo
             }
         }
 
