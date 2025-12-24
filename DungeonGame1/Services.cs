@@ -1,5 +1,5 @@
 ﻿using DungeonGame1;
-using Newtonsoft.Json; // ← ИЗМЕНИЛ ЗДЕСЬ
+using Newtonsoft.Json; 
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,7 +8,6 @@ using System.Windows;
 
 namespace DungeonGame1
 {
-    // Интерфейсы остаются те же...
     public interface IMainMenuService
     {
         List<LevelInfoDTO> GetAvailableLevels();
@@ -17,7 +16,7 @@ namespace DungeonGame1
         AppState ContinueGame(string saveId);
         AppState OpenEditor(string levelId);
         AppState ExitApp();
-        bool DeleteLevel(string levelId); // ДОБАВЛЕНО
+        bool DeleteLevel(string levelId); 
     }
 
     public interface IGameSession
@@ -62,8 +61,8 @@ namespace DungeonGame1
                 {
                     Id = "default",
                     Name = "Подземелье новичка",
-                    Width = 10,  // Фиксированный размер
-                    Height = 10, // Фиксированный размер
+                    Width = 10, 
+                    Height = 10, 
                     Tiles = GenerateDefaultLevel(10, 10)
                 };
                 SaveLevel(level);
@@ -143,7 +142,7 @@ namespace DungeonGame1
                 try
                 {
                     var json = File.ReadAllText(file);
-                    var save = JsonConvert.DeserializeObject<SaveData>(json); // ← ИЗМЕНИЛ ЗДЕСЬ
+                    var save = JsonConvert.DeserializeObject<SaveData>(json); 
                     saves.Add(new SaveInfoDTO
                     {
                         Id = save.Id,
@@ -177,7 +176,7 @@ namespace DungeonGame1
             Application.Current.Shutdown();
             return AppState.Exit;
         }
-        // === ДОБАВЬТЕ ЭТОТ МЕТОД СЮДА ===
+
         public bool DeleteLevel(string levelId)
         {
             try
@@ -196,7 +195,7 @@ namespace DungeonGame1
                         {
                             var json = File.ReadAllText(saveFile);
                             var save = JsonConvert.DeserializeObject<SaveData>(json);
-                            if (save?.LevelId == levelId)  // Добавил проверку на null
+                            if (save?.LevelId == levelId)  
                             {
                                 hasRelatedSaves = true;
                                 break;
@@ -224,7 +223,7 @@ namespace DungeonGame1
                                 {
                                     var json = File.ReadAllText(saveFile);
                                     var save = JsonConvert.DeserializeObject<SaveData>(json);
-                                    if (save?.LevelId == levelId)  // Добавил проверку на null
+                                    if (save?.LevelId == levelId)  
                                     {
                                         File.Delete(saveFile);
                                     }
@@ -252,8 +251,7 @@ namespace DungeonGame1
             try
             {
                 var json = File.ReadAllText(path);
-                var level = JsonConvert.DeserializeObject<LevelData>(json); // ← ИЗМЕНИЛ ЗДЕСЬ
-                // Гарантируем размер 10x10 при загрузке
+                var level = JsonConvert.DeserializeObject<LevelData>(json); 
                 if (level != null)
                 {
                     level.Width = 10;
@@ -270,10 +268,9 @@ namespace DungeonGame1
         private void SaveLevel(LevelData level)
         {
             var path = Path.Combine(levelsPath, $"{level.Id}.json");
-            // Гарантируем размер 10x10 при сохранении
             level.Width = 10;
             level.Height = 10;
-            var json = JsonConvert.SerializeObject(level, Formatting.Indented); // ← ИЗМЕНИЛ ЗДЕСЬ
+            var json = JsonConvert.SerializeObject(level, Formatting.Indented); 
             File.WriteAllText(path, json);
         }
     }
@@ -397,7 +394,6 @@ namespace DungeonGame1
             }
         }
 
-        // Остальные методы (MovePlayer, PlayerAttack и т.д.) остаются без изменений
         public GameStateDTO MovePlayer(FacingDirection direction)
         {
             if (gameState.Status != GameStatus.Playing || playerTile == null)
@@ -416,7 +412,7 @@ namespace DungeonGame1
 
             playerTile.FacingDirection = direction;
 
-            // Проверяем границы карты (всегда 10x10)
+            // Проверяем границы карты 
             if (newX < 0 || newX >= 10 || newY < 0 || newY >= 10)
             {
                 // Игрок пытается выйти за пределы карты
@@ -500,7 +496,6 @@ namespace DungeonGame1
                     int newX = enemy.X + move.dx;
                     int newY = enemy.Y + move.dy;
 
-                    // Проверяем границы 10x10
                     if (newX < 0 || newX >= 10 || newY < 0 || newY >= 10)
                         continue;
 
@@ -634,8 +629,8 @@ namespace DungeonGame1
             var newState = new EditorStateDTO
             {
                 LevelName = "Новый уровень",
-                Width = 10,  // Фиксированный размер
-                Height = 10, // Фиксированный размер
+                Width = 10,  
+                Height = 10, 
                 AvailableEntities = GetAvailableEntities(),
                 Map = new List<TileDTO>()
             };
@@ -841,12 +836,12 @@ namespace DungeonGame1
                 Id = Guid.NewGuid().ToString(),
                 Name = name,
                 Width = 10,  // Фиксированный размер
-                Height = 10, // Фиксированный размер
+                Height = 10, 
                 Tiles = editorState.Map.Where(t => t.EntityType != EntityVisualType.Empty).ToList()
             };
 
             var path = Path.Combine("Levels", $"{levelData.Id}.json");
-            var json = JsonConvert.SerializeObject(levelData, Formatting.Indented); // ← ИЗМЕНИЛ ЗДЕСЬ
+            var json = JsonConvert.SerializeObject(levelData, Formatting.Indented); 
             File.WriteAllText(path, json);
 
             return AppState.MainMenu;
@@ -860,15 +855,14 @@ namespace DungeonGame1
         {
             try
             {
-                var levelsPath = "Levels"; // ДОБАВЛЕНО: определение переменной
-                var savesPath = "Saves"; // ДОБАВЛЕНО: определение переменной
+                var levelsPath = "Levels"; 
+                var savesPath = "Saves"; 
 
                 var levelPath = Path.Combine(levelsPath, $"{levelId}.json");
 
                 if (File.Exists(levelPath))
                 {
-                    // Проверяем, есть ли связанные сохранения
-                    var saveFiles = Directory.GetFiles(savesPath, "*.json"); // ИСПРАВЛЕНО: savesPath вместо savesPath
+                    var saveFiles = Directory.GetFiles(savesPath, "*.json"); 
                     bool hasRelatedSaves = false;
 
                     foreach (var saveFile in saveFiles)

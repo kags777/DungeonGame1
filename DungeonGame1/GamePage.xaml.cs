@@ -125,13 +125,13 @@ namespace DungeonGame1
             // Проверка состояния игры
             if (currentState.Status == GameStatus.Victory)
             {
-                MessageBox.Show($"🎉 Победа! Вы набрали {currentState.Score} очков!",
+                MessageBox.Show($" Победа! Вы набрали {currentState.Score} очков!",
                     "Поздравляем!", MessageBoxButton.OK, MessageBoxImage.Information);
                 mainWindow.NavigateToMainMenu();
             }
             else if (currentState.Status == GameStatus.Defeat)
             {
-                MessageBox.Show("💀 Вы погибли! Попробуйте еще раз.",
+                MessageBox.Show(" Вы погибли! Попробуйте еще раз.",
                     "Игра окончена", MessageBoxButton.OK, MessageBoxImage.Warning);
                 mainWindow.NavigateToMainMenu();
             }

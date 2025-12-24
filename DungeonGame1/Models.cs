@@ -66,8 +66,8 @@ namespace DungeonGame1
     {
         public string Id { get; set; }
         public string Name { get; set; }
-        public int Width { get; set; } = 10;  // Ограничено 10
-        public int Height { get; set; } = 10; // Ограничено 10
+        public int Width { get; set; } = 10;  
+        public int Height { get; set; } = 10; 
         public List<TileDTO> Tiles { get; set; } = new List<TileDTO>();
     }
 

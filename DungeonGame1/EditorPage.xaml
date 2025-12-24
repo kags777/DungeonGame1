@@ -52,19 +52,19 @@
                                 Background="#0984e3" Foreground="White"
                                 FontWeight="Bold"
                                 ToolTip="Загрузить существующий уровень"/>
-                        <Button Content="🗺️ Новый уровень" 
+                        <Button Content=" Новый уровень" 
                                 Margin="0,2" Height="35"
                                 Click="NewLevelBtn_Click"
                                 Background="#0984e3" Foreground="White"
                                 FontWeight="Bold"
                                 ToolTip="Создать новый пустой уровень"/>
-                        <Button Content="💾 Сохранить уровень" 
+                        <Button Content=" Сохранить уровень" 
                                 Margin="0,2" Height="35"
                                 Click="SaveBtn_Click"
                                 Background="#00b894" Foreground="White"
                                 FontWeight="Bold"
                                 ToolTip="Сохранить текущий уровень"/>
-                        <Button Content="🗑️ Удалить уровень" 
+                        <Button Content=" Удалить уровень" 
                                 Margin="0,2" Height="35"
                                 Click="DeleteLevelBtn_Click"
                                 Background="#d63031" Foreground="White"
@@ -103,7 +103,7 @@
                     </Border>
 
                     <!-- Управление -->
-                    <Button Content="🚪 В меню" 
+                    <Button Content=" В меню" 
                             Margin="0,2" Height="35"
                             Click="MenuBtn_Click"
                             Background="#e17055" Foreground="White"

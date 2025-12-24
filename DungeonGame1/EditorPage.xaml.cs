@@ -16,9 +16,8 @@ namespace DungeonGame1
         private EditorStateDTO currentState;
         private EntityVisualType selectedEntity = EntityVisualType.Wall;
 
-        public int EditorWidth => 10; // Фиксированный размер
-        public int EditorHeight => 10; // Фиксированный размер
-
+        public int EditorWidth => 10; 
+        public int EditorHeight => 10; 
         public EditorPage(MainWindow window, string levelId = null)
         {
             InitializeComponent();
@@ -61,9 +60,6 @@ namespace DungeonGame1
 
             EntitiesListBox.ItemsSource = entities;
             UpdateEntitySelection();
-
-            // УДАЛЕНО: Установка размеров из TextBox
-            // Вместо этого используем фиксированные значения
             UpdateEditorDisplay();
         }
 
@@ -142,13 +138,8 @@ namespace DungeonGame1
 
         private void Page_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            // Чтобы фокус не терялся
             Focus();
         }
-
-        // УДАЛЕН МЕТОД: SizeBox_TextChanged
-
-        // УДАЛЕН МЕТОД: UpdateMapWithBorders
 
         private void NewLevelBtn_Click(object sender, RoutedEventArgs e)
         {
@@ -162,7 +153,6 @@ namespace DungeonGame1
             }
 
             LevelNameBox.Text = currentState.LevelName;
-            // УДАЛЕНО: Установка WidthBox и HeightBox
             UpdateEditorDisplay();
         }
 
@@ -252,7 +242,6 @@ namespace DungeonGame1
             {
                 currentState = editorService.LoadLevel(dialog.SelectedLevelId);
                 LevelNameBox.Text = currentState.LevelName;
-                // УДАЛЕНО: Установка WidthBox и HeightBox
                 UpdateEditorDisplay();
             }
         }
