@@ -62,7 +62,6 @@ namespace DungeonGame1.Tests
         [TestMethod]
         public void GameSession_Constructor_NewGame_CreatesCorrectState()
         {
-            // Arrange
             var tiles = new List<TileDTO>
             {
                 new TileDTO { X = 5, Y = 5, EntityType = EntityVisualType.Player, FacingDirection = FacingDirection.Right },
@@ -70,7 +69,6 @@ namespace DungeonGame1.Tests
             };
             CreateTestLevel("test-new-game", tiles);
 
-            // Копируем тестовый уровень в основную директорию Levels
             Directory.CreateDirectory("Levels");
             File.Copy(
                 Path.Combine(testLevelsPath, "test-new-game.json"),
@@ -79,22 +77,19 @@ namespace DungeonGame1.Tests
 
             try
             {
-                // Act
                 var gameSession = new GameSession("test-new-game", true);
                 var gameState = gameSession.GetGameState();
 
-                // Assert
                 Assert.IsNotNull(gameState);
                 Assert.AreEqual(GameStatus.Playing, gameState.Status);
                 Assert.AreEqual(100, gameState.Health);
                 Assert.AreEqual(100, gameState.MaxHealth);
                 Assert.AreEqual(0, gameState.Score);
                 Assert.AreEqual(0, gameState.CrystalsCollected);
-                Assert.AreEqual(1, gameState.TotalCrystals); // 1 кристалл в уровне
+                Assert.AreEqual(1, gameState.TotalCrystals); 
             }
             finally
             {
-                // Cleanup
                 var levelPath = Path.Combine("Levels", "test-new-game.json");
                 if (File.Exists(levelPath))
                     File.Delete(levelPath);
@@ -104,7 +99,6 @@ namespace DungeonGame1.Tests
         [TestMethod]
         public void MovePlayer_ValidMove_ChangesPlayerPosition()
         {
-            // Arrange
             var tiles = new List<TileDTO>
             {
                 new TileDTO { X = 5, Y = 5, EntityType = EntityVisualType.Player, FacingDirection = FacingDirection.Right }
@@ -119,7 +113,6 @@ namespace DungeonGame1.Tests
                 Tiles = tiles
             };
 
-            // Сохраняем файл
             Directory.CreateDirectory("Levels");
             var filePath = Path.Combine("Levels", "move-test.json");
             var json = JsonConvert.SerializeObject(testLevel, Formatting.Indented);
@@ -127,20 +120,16 @@ namespace DungeonGame1.Tests
 
             try
             {
-                // Act
                 var gameSession = new GameSession("move-test", true);
                 var result = gameSession.MovePlayer(FacingDirection.Right);
 
-                // Assert - просто проверяем что игрок двигается
                 var player = result.Map.FirstOrDefault(t => t.EntityType == EntityVisualType.Player);
                 Assert.IsNotNull(player);
-                // Игрок должен быть где-то на карте
                 Assert.IsTrue(player.X >= 0 && player.X < 10);
                 Assert.IsTrue(player.Y >= 0 && player.Y < 10);
             }
             finally
             {
-                // Cleanup
                 if (File.Exists(filePath))
                     File.Delete(filePath);
             }
@@ -149,7 +138,6 @@ namespace DungeonGame1.Tests
         [TestMethod]
         public void MovePlayer_CollectCrystal_IncreasesScoreAndCount()
         {
-            // Arrange
             var tiles = new List<TileDTO>
             {
                 new TileDTO { X = 5, Y = 5, EntityType = EntityVisualType.Player, FacingDirection = FacingDirection.Right },
@@ -168,16 +156,13 @@ namespace DungeonGame1.Tests
                 var gameSession = new GameSession("test-crystal", true);
                 var initialState = gameSession.GetGameState();
                 var initialCrystalCount = initialState.Map.Count(t => t.EntityType == EntityVisualType.Crystal);
-
-                // Act - двигаемся вправо чтобы собрать кристалл
                 var result = gameSession.MovePlayer(FacingDirection.Right);
 
-                // Assert
-                Assert.AreEqual(50, result.Score); // +50 за кристалл
+
+                Assert.AreEqual(50, result.Score);
                 Assert.AreEqual(1, result.CrystalsCollected);
                 Assert.AreEqual(initialCrystalCount, result.TotalCrystals);
 
-                // Проверяем что кристалл удален с карты
                 var crystalAfterMove = result.Map.FirstOrDefault(t =>
                     t.EntityType == EntityVisualType.Crystal &&
                     t.X == 6 && t.Y == 5);
@@ -194,7 +179,6 @@ namespace DungeonGame1.Tests
         [TestMethod]
         public void MovePlayer_IntoEnemy_ReducesHealth()
         {
-            // Arrange
             var tiles = new List<TileDTO>
             {
                 new TileDTO { X = 5, Y = 5, EntityType = EntityVisualType.Player, FacingDirection = FacingDirection.Right },
@@ -217,15 +201,11 @@ namespace DungeonGame1.Tests
 
             try
             {
-                // Act
                 var gameSession = new GameSession("enemy-test", true);
                 var initialState = gameSession.GetGameState();
                 var initialHealth = initialState.Health;
 
                 var result = gameSession.MovePlayer(FacingDirection.Right);
-
-                // Assert - проверяем что здоровье изменилось
-                // В реальной логике здоровье может уменьшиться на 10
                 Assert.IsTrue(result.Health <= initialHealth);
             }
             finally
@@ -238,7 +218,6 @@ namespace DungeonGame1.Tests
         [TestMethod]
         public void PlayerAttack_KillsEnemy_IncreasesScore()
         {
-            // Arrange
             var tiles = new List<TileDTO>
             {
                 new TileDTO { X = 5, Y = 5, EntityType = EntityVisualType.Player, FacingDirection = FacingDirection.Right },
@@ -259,13 +238,11 @@ namespace DungeonGame1.Tests
                 var enemyBefore = initialState.Map.FirstOrDefault(t => t.EntityType == EntityVisualType.Enemy);
                 Assert.IsNotNull(enemyBefore, "Враг должен существовать до атаки");
 
-                // Act - атакуем врага
                 var result = gameSession.PlayerAttack();
 
-                // Assert
                 var enemyAfter = result.Map.FirstOrDefault(t => t.EntityType == EntityVisualType.Enemy);
                 Assert.IsNull(enemyAfter, "Враг должен быть убит после атаки");
-                Assert.AreEqual(100, result.Score); // +100 очков за убийство врага
+                Assert.AreEqual(100, result.Score); 
             }
             finally
             {

@@ -10,10 +10,8 @@ namespace DungeonGame1.Tests
         [TestMethod]
         public void AppState_Enum_HasAllValues()
         {
-            // Arrange & Act
             var values = Enum.GetValues(typeof(AppState)).Cast<AppState>().ToList();
 
-            // Assert
             Assert.IsTrue(values.Contains(AppState.MainMenu));
             Assert.IsTrue(values.Contains(AppState.Game));
             Assert.IsTrue(values.Contains(AppState.Editor));
@@ -24,10 +22,8 @@ namespace DungeonGame1.Tests
         [TestMethod]
         public void GameStatus_Enum_HasAllValues()
         {
-            // Arrange & Act
             var values = Enum.GetValues(typeof(GameStatus)).Cast<GameStatus>().ToList();
 
-            // Assert
             Assert.IsTrue(values.Contains(GameStatus.Playing));
             Assert.IsTrue(values.Contains(GameStatus.Paused));
             Assert.IsTrue(values.Contains(GameStatus.Victory));
@@ -38,10 +34,8 @@ namespace DungeonGame1.Tests
         [TestMethod]
         public void FacingDirection_Enum_HasAllValues()
         {
-            // Arrange & Act
             var values = Enum.GetValues(typeof(FacingDirection)).Cast<FacingDirection>().ToList();
 
-            // Assert
             Assert.IsTrue(values.Contains(FacingDirection.None));
             Assert.IsTrue(values.Contains(FacingDirection.Up));
             Assert.IsTrue(values.Contains(FacingDirection.Down));
@@ -53,10 +47,8 @@ namespace DungeonGame1.Tests
         [TestMethod]
         public void EntityVisualType_Enum_HasAllValues()
         {
-            // Arrange & Act
             var values = Enum.GetValues(typeof(EntityVisualType)).Cast<EntityVisualType>().ToList();
 
-            // Assert
             Assert.IsTrue(values.Contains(EntityVisualType.Player));
             Assert.IsTrue(values.Contains(EntityVisualType.Enemy));
             Assert.IsTrue(values.Contains(EntityVisualType.Wall));
