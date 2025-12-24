@@ -16,8 +16,8 @@ namespace DungeonGame1
         private EditorStateDTO currentState;
         private EntityVisualType selectedEntity = EntityVisualType.Wall;
 
-        public int EditorWidth => currentState?.Width ?? 10;
-        public int EditorHeight => currentState?.Height ?? 10;
+        public int EditorWidth => 10; // Фиксированный размер
+        public int EditorHeight => 10; // Фиксированный размер
 
         public EditorPage(MainWindow window, string levelId = null)
         {
@@ -62,10 +62,8 @@ namespace DungeonGame1
             EntitiesListBox.ItemsSource = entities;
             UpdateEntitySelection();
 
-            // Устанавливаем размеры
-            WidthBox.Text = currentState.Width.ToString();
-            HeightBox.Text = currentState.Height.ToString();
-
+            // УДАЛЕНО: Установка размеров из TextBox
+            // Вместо этого используем фиксированные значения
             UpdateEditorDisplay();
         }
 
@@ -73,10 +71,10 @@ namespace DungeonGame1
         {
             var displayTiles = new List<EditorDisplayTile>();
 
-            // Создаем все клетки
-            for (int y = 0; y < currentState.Height; y++)
+            // Создаем все клетки 10x10
+            for (int y = 0; y < 10; y++)
             {
-                for (int x = 0; x < currentState.Width; x++)
+                for (int x = 0; x < 10; x++)
                 {
                     var tile = currentState.Map.FirstOrDefault(t => t.X == x && t.Y == y);
                     displayTiles.Add(new EditorDisplayTile(tile ?? new TileDTO
@@ -113,6 +111,10 @@ namespace DungeonGame1
         {
             if (sender is Border border && border.DataContext is EditorDisplayTile displayTile)
             {
+                // Проверяем границы 10x10
+                if (displayTile.X < 0 || displayTile.X >= 10 || displayTile.Y < 0 || displayTile.Y >= 10)
+                    return;
+
                 if (e.LeftButton == MouseButtonState.Pressed)
                 {
                     // ЛКМ - ставим объект
@@ -144,77 +146,9 @@ namespace DungeonGame1
             Focus();
         }
 
-        private void SizeBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (WidthBox == null || HeightBox == null)
-                return;
+        // УДАЛЕН МЕТОД: SizeBox_TextChanged
 
-            if (currentState == null)
-                return;
-
-            if (int.TryParse(WidthBox.Text, out int width) &&
-                int.TryParse(HeightBox.Text, out int height) &&
-                width > 0 && width <= 50 &&
-                height > 0 && height <= 50)
-            {
-                currentState.Width = width;
-                currentState.Height = height;
-
-                // Сохраняем стены по границам при изменении размера
-                UpdateMapWithBorders(width, height);
-                UpdateEditorDisplay();
-            }
-        }
-
-        private void UpdateMapWithBorders(int newWidth, int newHeight)
-        {
-            if (currentState?.Map == null) return;
-
-            // Удаляем тайлы за новыми границами
-            currentState.Map.RemoveAll(t => t.X >= newWidth || t.Y >= newHeight);
-
-            // Добавляем недостающие пустые тайлы
-            for (int y = 0; y < newHeight; y++)
-            {
-                for (int x = 0; x < newWidth; x++)
-                {
-                    var tile = currentState.Map.FirstOrDefault(t => t.X == x && t.Y == y);
-                    if (tile == null)
-                    {
-                        currentState.Map.Add(new TileDTO
-                        {
-                            X = x,
-                            Y = y,
-                            EntityType = EntityVisualType.Empty,
-                            FacingDirection = FacingDirection.Down
-                        });
-                    }
-                }
-            }
-
-            // Обновляем стены по новым границам
-            for (int x = 0; x < newWidth; x++)
-            {
-                var topTile = currentState.Map.FirstOrDefault(t => t.X == x && t.Y == 0);
-                var bottomTile = currentState.Map.FirstOrDefault(t => t.X == x && t.Y == newHeight - 1);
-
-                if (topTile != null && topTile.EntityType != EntityVisualType.Player && topTile.EntityType != EntityVisualType.Exit)
-                    topTile.EntityType = EntityVisualType.Wall;
-                if (bottomTile != null && bottomTile.EntityType != EntityVisualType.Player && bottomTile.EntityType != EntityVisualType.Exit)
-                    bottomTile.EntityType = EntityVisualType.Wall;
-            }
-
-            for (int y = 1; y < newHeight - 1; y++)
-            {
-                var leftTile = currentState.Map.FirstOrDefault(t => t.X == 0 && t.Y == y);
-                var rightTile = currentState.Map.FirstOrDefault(t => t.X == newWidth - 1 && t.Y == y);
-
-                if (leftTile != null && leftTile.EntityType != EntityVisualType.Player && leftTile.EntityType != EntityVisualType.Exit)
-                    leftTile.EntityType = EntityVisualType.Wall;
-                if (rightTile != null && rightTile.EntityType != EntityVisualType.Player && rightTile.EntityType != EntityVisualType.Exit)
-                    rightTile.EntityType = EntityVisualType.Wall;
-            }
-        }
+        // УДАЛЕН МЕТОД: UpdateMapWithBorders
 
         private void NewLevelBtn_Click(object sender, RoutedEventArgs e)
         {
@@ -228,8 +162,7 @@ namespace DungeonGame1
             }
 
             LevelNameBox.Text = currentState.LevelName;
-            WidthBox.Text = currentState.Width.ToString();
-            HeightBox.Text = currentState.Height.ToString();
+            // УДАЛЕНО: Установка WidthBox и HeightBox
             UpdateEditorDisplay();
         }
 
@@ -319,8 +252,7 @@ namespace DungeonGame1
             {
                 currentState = editorService.LoadLevel(dialog.SelectedLevelId);
                 LevelNameBox.Text = currentState.LevelName;
-                WidthBox.Text = currentState.Width.ToString();
-                HeightBox.Text = currentState.Height.ToString();
+                // УДАЛЕНО: Установка WidthBox и HeightBox
                 UpdateEditorDisplay();
             }
         }

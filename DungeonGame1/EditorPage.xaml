@@ -1,4 +1,4 @@
-﻿<Page x:Class="DungeonGame1.EditorPage"
+﻿ <Page x:Class="DungeonGame1.EditorPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Title="Редактор уровней" Background="#1a1a2e"
@@ -36,16 +36,11 @@
                                      BorderBrush="#e94560"
                                      ToolTip="Название уровня"/>
 
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                                <TextBlock Text="Ш:" Foreground="White" VerticalAlignment="Center" Width="20"/>
-                                <TextBox x:Name="WidthBox" Text="10" Width="40" Margin="2"
-                                         TextChanged="SizeBox_TextChanged"
-                                         ToolTip="Ширина уровня (1-50)"/>
-                                <TextBlock Text="В:" Foreground="White" VerticalAlignment="Center" Margin="5,0,0,0" Width="20"/>
-                                <TextBox x:Name="HeightBox" Text="10" Width="40" Margin="2"
-                                         TextChanged="SizeBox_TextChanged"
-                                         ToolTip="Высота уровня (1-50)"/>
-                            </StackPanel>
+                            <!-- УДАЛЕНО: поля для изменения размеров -->
+                            <TextBlock Text="Размер: 10x10 клеток" 
+                                       Foreground="LightGray" 
+                                       FontSize="12"
+                                       Margin="0,5,0,0"/>
                         </StackPanel>
                     </Border>
 
@@ -121,7 +116,7 @@
 • ЛКМ - поставить объект
 • ПКМ - очистить клетку
 • Средняя кнопка - взять объект
-• Измените размер в полях Ш/В
+• Размер карты фиксированный: 10x10
 • Сохраните перед выходом" 
                                    Foreground="LightGray" 
                                    FontSize="11"
@@ -137,8 +132,8 @@
             <ItemsControl x:Name="EditorGrid">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <UniformGrid x:Name="MapGrid" Rows="{Binding EditorHeight}" 
-                                     Columns="{Binding EditorWidth}" 
+                        <UniformGrid x:Name="MapGrid" Rows="10" 
+                                     Columns="10" 
                                      Background="#0f1c30"/>
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>

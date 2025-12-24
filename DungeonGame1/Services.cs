@@ -6,7 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 
-namespace DungeonGame1{
+namespace DungeonGame1
+{
     // Интерфейсы остаются те же...
     public interface IMainMenuService
     {
@@ -61,8 +62,8 @@ namespace DungeonGame1{
                 {
                     Id = "default",
                     Name = "Подземелье новичка",
-                    Width = 10,
-                    Height = 10,
+                    Width = 10,  // Фиксированный размер
+                    Height = 10, // Фиксированный размер
                     Tiles = GenerateDefaultLevel(10, 10)
                 };
                 SaveLevel(level);
@@ -251,7 +252,14 @@ namespace DungeonGame1{
             try
             {
                 var json = File.ReadAllText(path);
-                return JsonConvert.DeserializeObject<LevelData>(json); // ← ИЗМЕНИЛ ЗДЕСЬ
+                var level = JsonConvert.DeserializeObject<LevelData>(json); // ← ИЗМЕНИЛ ЗДЕСЬ
+                // Гарантируем размер 10x10 при загрузке
+                if (level != null)
+                {
+                    level.Width = 10;
+                    level.Height = 10;
+                }
+                return level;
             }
             catch
             {
@@ -262,6 +270,9 @@ namespace DungeonGame1{
         private void SaveLevel(LevelData level)
         {
             var path = Path.Combine(levelsPath, $"{level.Id}.json");
+            // Гарантируем размер 10x10 при сохранении
+            level.Width = 10;
+            level.Height = 10;
             var json = JsonConvert.SerializeObject(level, Formatting.Indented); // ← ИЗМЕНИЛ ЗДЕСЬ
             File.WriteAllText(path, json);
         }
@@ -347,7 +358,14 @@ namespace DungeonGame1{
             }
 
             var json = File.ReadAllText(path);
-            return JsonConvert.DeserializeObject<LevelData>(json);
+            var level = JsonConvert.DeserializeObject<LevelData>(json);
+            // Гарантируем размер 10x10
+            if (level != null)
+            {
+                level.Width = 10;
+                level.Height = 10;
+            }
+            return level;
         }
 
         private SaveData LoadSave(string saveId)
@@ -398,8 +416,8 @@ namespace DungeonGame1{
 
             playerTile.FacingDirection = direction;
 
-            // Проверяем границы карты
-            if (newX < 0 || newX >= currentLevel.Width || newY < 0 || newY >= currentLevel.Height)
+            // Проверяем границы карты (всегда 10x10)
+            if (newX < 0 || newX >= 10 || newY < 0 || newY >= 10)
             {
                 // Игрок пытается выйти за пределы карты
                 return gameState;
@@ -481,6 +499,10 @@ namespace DungeonGame1{
                 {
                     int newX = enemy.X + move.dx;
                     int newY = enemy.Y + move.dy;
+
+                    // Проверяем границы 10x10
+                    if (newX < 0 || newX >= 10 || newY < 0 || newY >= 10)
+                        continue;
 
                     var existingTile = gameState.Map.FirstOrDefault(t => t.X == newX && t.Y == newY);
 
@@ -593,9 +615,9 @@ namespace DungeonGame1{
 
         private void InitializeEmptyMap()
         {
-            for (int x = 0; x < editorState.Width; x++)
+            for (int x = 0; x < 10; x++)  // Фиксированный размер
             {
-                for (int y = 0; y < editorState.Height; y++)
+                for (int y = 0; y < 10; y++)  // Фиксированный размер
                 {
                     editorState.Map.Add(new TileDTO
                     {
@@ -612,8 +634,8 @@ namespace DungeonGame1{
             var newState = new EditorStateDTO
             {
                 LevelName = "Новый уровень",
-                Width = 10,
-                Height = 10,
+                Width = 10,  // Фиксированный размер
+                Height = 10, // Фиксированный размер
                 AvailableEntities = GetAvailableEntities(),
                 Map = new List<TileDTO>()
             };
@@ -624,10 +646,10 @@ namespace DungeonGame1{
 
         private void InitializeEmptyMapWithBorders(EditorStateDTO state)
         {
-            // Создаем пустую карту
-            for (int y = 0; y < state.Height; y++)
+            // Создаем пустую карту 10x10
+            for (int y = 0; y < 10; y++)
             {
-                for (int x = 0; x < state.Width; x++)
+                for (int x = 0; x < 10; x++)
                 {
                     state.Map.Add(new TileDTO
                     {
@@ -640,21 +662,21 @@ namespace DungeonGame1{
             }
 
             // Автоматически добавляем стены по краям
-            for (int x = 0; x < state.Width; x++)
+            for (int x = 0; x < 10; x++)
             {
                 // Верхняя и нижняя границы
                 var topTile = state.Map.FirstOrDefault(t => t.X == x && t.Y == 0);
-                var bottomTile = state.Map.FirstOrDefault(t => t.X == x && t.Y == state.Height - 1);
+                var bottomTile = state.Map.FirstOrDefault(t => t.X == x && t.Y == 9);
 
                 if (topTile != null) topTile.EntityType = EntityVisualType.Wall;
                 if (bottomTile != null) bottomTile.EntityType = EntityVisualType.Wall;
             }
 
-            for (int y = 1; y < state.Height - 1; y++)
+            for (int y = 1; y < 9; y++)
             {
                 // Левая и правая границы
                 var leftTile = state.Map.FirstOrDefault(t => t.X == 0 && t.Y == y);
-                var rightTile = state.Map.FirstOrDefault(t => t.X == state.Width - 1 && t.Y == y);
+                var rightTile = state.Map.FirstOrDefault(t => t.X == 9 && t.Y == y);
 
                 if (leftTile != null) leftTile.EntityType = EntityVisualType.Wall;
                 if (rightTile != null) rightTile.EntityType = EntityVisualType.Wall;
@@ -663,9 +685,9 @@ namespace DungeonGame1{
 
         private void InitializeEmptyMap(EditorStateDTO state)
         {
-            for (int y = 0; y < state.Height; y++)
+            for (int y = 0; y < 10; y++)
             {
-                for (int x = 0; x < state.Width; x++)
+                for (int x = 0; x < 10; x++)
                 {
                     state.Map.Add(new TileDTO
                     {
@@ -678,7 +700,6 @@ namespace DungeonGame1{
             }
         }
 
-
         public EditorStateDTO LoadLevel(string levelId)
         {
             var path = Path.Combine("Levels", $"{levelId}.json");
@@ -690,8 +711,8 @@ namespace DungeonGame1{
                 editorState = new EditorStateDTO
                 {
                     LevelName = levelData.Name,
-                    Width = levelData.Width,
-                    Height = levelData.Height,
+                    Width = 10,  // Фиксированный размер
+                    Height = 10, // Фиксированный размер
                     AvailableEntities = GetAvailableEntities(),
                     Map = levelData.Tiles
                 };
@@ -705,16 +726,16 @@ namespace DungeonGame1{
         private void EnsureBorders(EditorStateDTO state)
         {
             // Проверяем и добавляем стены по границам, если их нет
-            for (int x = 0; x < state.Width; x++)
+            for (int x = 0; x < 10; x++)
             {
                 EnsureWallAt(state, x, 0); // Верх
-                EnsureWallAt(state, x, state.Height - 1); // Низ
+                EnsureWallAt(state, x, 9); // Низ
             }
 
-            for (int y = 1; y < state.Height - 1; y++)
+            for (int y = 1; y < 9; y++)
             {
                 EnsureWallAt(state, 0, y); // Лево
-                EnsureWallAt(state, state.Width - 1, y); // Право
+                EnsureWallAt(state, 9, y); // Право
             }
         }
 
@@ -755,6 +776,10 @@ namespace DungeonGame1{
 
         public EditorStateDTO PlaceEntity(int x, int y, EntityVisualType entityType)
         {
+            // Проверяем границы 10x10
+            if (x < 0 || x >= 10 || y < 0 || y >= 10)
+                return editorState;
+
             // Находим или создаем тайл
             var tile = editorState.Map.FirstOrDefault(t => t.X == x && t.Y == y);
 
@@ -791,6 +816,10 @@ namespace DungeonGame1{
 
         public EditorStateDTO RemoveEntity(int x, int y)
         {
+            // Проверяем границы 10x10
+            if (x < 0 || x >= 10 || y < 0 || y >= 10)
+                return editorState;
+
             var tile = editorState.Map.FirstOrDefault(t => t.X == x && t.Y == y);
             if (tile != null)
             {
@@ -811,8 +840,8 @@ namespace DungeonGame1{
             {
                 Id = Guid.NewGuid().ToString(),
                 Name = name,
-                Width = editorState.Width,
-                Height = editorState.Height,
+                Width = 10,  // Фиксированный размер
+                Height = 10, // Фиксированный размер
                 Tiles = editorState.Map.Where(t => t.EntityType != EntityVisualType.Empty).ToList()
             };
 

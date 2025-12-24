@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json; 
-using Newtonsoft.Json.Converters; 
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace DungeonGame1
 {
@@ -59,15 +59,15 @@ namespace DungeonGame1
     {
         public EntityVisualType Type { get; set; }
         public string Name { get; set; }
-        public string Symbol { get; set; } 
+        public string Symbol { get; set; }
     }
 
     public class LevelData
     {
         public string Id { get; set; }
         public string Name { get; set; }
-        public int Width { get; set; }
-        public int Height { get; set; }
+        public int Width { get; set; } = 10;  // Ограничено 10
+        public int Height { get; set; } = 10; // Ограничено 10
         public List<TileDTO> Tiles { get; set; } = new List<TileDTO>();
     }
 
@@ -78,6 +78,4 @@ namespace DungeonGame1
         public string SaveTime { get; set; }
         public GameStateDTO GameState { get; set; }
     }
-
-
 }
