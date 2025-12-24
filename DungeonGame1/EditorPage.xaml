@@ -13,7 +13,7 @@
         <Border Grid.Column="0" Background="#16213e" Width="200">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="10">
-                    <TextBlock Text="🧩 РЕДАКТОР УРОВНЕЙ" 
+                    <TextBlock Text=" РЕДАКТОР УРОВНЕЙ" 
                                Foreground="#e94560" 
                                FontSize="16" 
                                FontWeight="Bold"
@@ -46,7 +46,7 @@
 
                     <!-- Кнопки управления уровнями -->
                     <StackPanel Margin="0,0,0,15">
-                        <Button Content="📂 Загрузить уровень" 
+                        <Button Content=" Загрузить уровень" 
                                 Margin="0,2" Height="35"
                                 Click="LoadLevelBtn_Click"
                                 Background="#0984e3" Foreground="White"
